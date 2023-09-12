@@ -1,3 +1,10 @@
+# Filders for application testing
+uploads/
+zones/
+slave-zone-template
+post-update.sh
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -1,0 +1,5 @@
+zone "%ZONE%" {
+  type slave;
+  masters { YOUR_MASTER_DNS_SERVER; };
+  file "/var/lib/bind/db.%ZONE%";
+};
