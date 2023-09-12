@@ -66,7 +66,7 @@ class Handler(FileSystemEventHandler):
 
                 # Slave zone file is created by substitution from the template
                 template_file = open("./slave-zone-template", 'r')
-                zone_file = open("./zones/db." + zone, 'w')
+                zone_file = open("./zones/zone." + zone + ".conf", 'w')
 
                 for line in template_file:
                     line = line.replace("%ZONE%", zone)
