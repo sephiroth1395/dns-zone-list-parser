@@ -5,5 +5,5 @@ COPY requirements.txt ./
 RUN apt update
 RUN apt install -y gcc
 RUN pip install --no-cache-dir -r requirements.txt
-COPY updatedns.py /app/
+COPY server.py /app/
 CMD [ "python", "/app/server.py" ]
