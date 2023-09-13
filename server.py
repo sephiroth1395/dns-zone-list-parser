@@ -12,10 +12,14 @@
 import time
 import os
 import subprocess
+import asyncio
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 # --------------------------------------------------------------------------- #
+
+### Setup mutex
+lock = asyncio.Lock() 
 
 ### Define file handler
 class watchUploads:
@@ -26,6 +30,7 @@ class watchUploads:
         self.observer = Observer()
  
     def run(self):
+
         event_handler = Handler()
         self.observer.schedule(event_handler, self.watchDirectory, recursive = False)
         self.observer.start()
@@ -52,6 +57,18 @@ class Handler(FileSystemEventHandler):
         elif event.event_type == 'modified':
 
             print("Zone list file updated.")
+
+            # Proceed only if the lock is free, and take possession if so
+            # This is done to avoid concurrent handling while the file is being
+            # written by the HTTP upload receiver    
+            if lock.locked:
+                print("Not moving forward, processing is currently locked.")
+                return None
+            else:
+                lock.acquire()
+
+            # Sleep 5 seconds to allow write to finish
+            time.sleep(5) 
 
             # Read the zones file line by line and create the slave zone file
             exported_zones_file = open(event.src_path, 'r')
@@ -88,10 +105,11 @@ class Handler(FileSystemEventHandler):
                     print("Zone " + existing_zone + " removed from master, deleting slave zone file.")
                     os.remove("./zones/" + file)
 
-        if os.path.exists("./post-update.sh"):
-            subprocess.run(["./post-update.sh"], shell=True)
+            if os.path.exists("./post-update.sh"):
+                subprocess.run(["./post-update.sh"], shell=True)
 
-        print("Processing finished.")
+            print("Processing finished.")
+            lock.release()
 
 # --------------------------------------------------------------------------- #
 
