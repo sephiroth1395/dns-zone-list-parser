@@ -71,14 +71,14 @@ class Handler(FileSystemEventHandler):
             time.sleep(5) 
 
             # Read the zones file line by line and create the slave zone file
-            exported_zones_file = open(event.src_path, 'r')
+            exported_zones_file = open('./uploads/pdns.dump', 'r')
             zones = exported_zones_file.readlines()
 
             # Strip endlines from zones files
             zones = [z.strip() for z in zones] 
-            
+
             for zone in zones:
-            
+
                 print("Processing zone " + zone + ".")
 
                 # Slave zone file is created by substitution from the template
