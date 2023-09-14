@@ -12,14 +12,10 @@
 import time
 import os
 import subprocess
-import asyncio
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 # --------------------------------------------------------------------------- #
-
-### Setup mutex
-lock = asyncio.Lock() 
 
 ### Define file handler
 class watchUploads:
@@ -30,6 +26,10 @@ class watchUploads:
         self.observer = Observer()
  
     def run(self):
+
+        # Remove lock file if present
+        if os.path.exists("./lock.file"):
+            os.remove('./lock.file')
 
         event_handler = Handler()
         self.observer.schedule(event_handler, self.watchDirectory, recursive = False)
@@ -56,16 +56,16 @@ class Handler(FileSystemEventHandler):
             return None
         elif event.event_type == 'modified':
 
+            if os.path.exists("./lock.file"):
+                print("Zone list file updated but lock active - No action.")
+                return None
+
             print("Zone list file updated.")
 
-            # Proceed only if the lock is free, and take possession if so
-            # This is done to avoid concurrent handling while the file is being
-            # written by the HTTP upload receiver    
-            if lock.locked:
-                print("Not moving forward, processing is currently locked.")
-                return None
-            else:
-                lock.acquire()
+            # Create lock file
+            lock_file = open("./lock.file", 'w')
+            lock_file.write('')
+            lock_file.close()
 
             # Sleep 5 seconds to allow write to finish
             time.sleep(5) 
@@ -109,7 +109,11 @@ class Handler(FileSystemEventHandler):
                 subprocess.run(["./post-update.sh"], shell=True)
 
             print("Processing finished.")
-            lock.release()
+
+            # Remove lock file if present
+            if os.path.exists("./lock.file"):
+                os.remove('./lock.file')
+
 
 # --------------------------------------------------------------------------- #
 
