@@ -100,9 +100,12 @@ class Handler(FileSystemEventHandler):
             existing_files = [f for f in existing_files if os.path.isfile("./zones/"+f)]
             
             for file in existing_files:
-                existing_zone = file.strip("db.")
-                if existing_zone not in zones:
-                    print("Zone " + existing_zone + " removed from master, deleting slave zone file.")
+                # Extract zone name from file name 
+                zone = file.removeprefix('zone.')
+                zone = zone.removesuffix('.conf')
+                # Check if zone from file exists in zone dump from pdns 
+                if zone not in zones:
+                    print("Zone " + zone + " removed from master, deleting slave zone file.")
                     os.remove("./zones/" + file)
 
             if os.path.exists("./post-update.sh"):
